@@ -7,9 +7,11 @@ import java.math.BigDecimal;
 import javax.persistence.Convert;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Builder
+@ToString
 public class BetDTO implements Serializable {
   private String id;
 
@@ -18,4 +20,7 @@ public class BetDTO implements Serializable {
 
   private short betNumber;
   private BigDecimal money;
+
+  private BigDecimal winningMoney;
+  private short winningBetNumber;
 }

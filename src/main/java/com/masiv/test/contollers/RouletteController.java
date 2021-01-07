@@ -1,7 +1,9 @@
 package com.masiv.test.contollers;
 
+import com.masiv.test.domain.dto.BetDTO;
 import com.masiv.test.domain.dto.ChangeRouletteStatusDTO;
 import com.masiv.test.services.RouletteService;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +33,12 @@ public class RouletteController {
       @RequestBody ChangeRouletteStatusDTO changeRouletteStatusDTO) {
     return new ResponseEntity<>(
         rouletteService.openingRoulette(changeRouletteStatusDTO), HttpStatus.OK);
+  }
+
+  @PutMapping(value = "/close-status")
+  public ResponseEntity<List<BetDTO>> closeRouletteStatus(
+      @RequestBody ChangeRouletteStatusDTO changeRouletteStatusDTO) {
+    return new ResponseEntity<>(
+        rouletteService.closeRoulette(changeRouletteStatusDTO.getId()), HttpStatus.OK);
   }
 }
