@@ -33,6 +33,7 @@ public class DefaultBetService implements BetService {
         rouletteService.validateRoulette(
             rouletteDTO.getId() != null ? rouletteDTO.getId() : EMPTY_STRING);
         rouletteDTO.getBets().stream().filter(Objects::nonNull).forEach(this::validateBet);
+        if (!rouletteDTO.isOpen()) rouletteDTO.setOpen(true);
         return rouletteService.updateRoulette(rouletteDTO);
       }
     }
