@@ -1,4 +1,4 @@
-package com.masiv.test.JhonBaronDevTest;
+package com.masiv.test;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
