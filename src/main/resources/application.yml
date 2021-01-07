@@ -2,6 +2,8 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/masiv
+politics:
+  max-money: 10000
 logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
