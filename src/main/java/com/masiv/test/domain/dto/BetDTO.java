@@ -20,4 +20,7 @@ public class BetDTO implements Serializable {
 
   private short betNumber;
   private BigDecimal money;
+
+  private BigDecimal winningMoney;
+  private short winningBetNumber;
 }

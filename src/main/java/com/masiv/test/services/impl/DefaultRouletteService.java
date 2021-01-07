@@ -9,7 +9,9 @@ import com.masiv.test.domain.enums.betColor.BetColorType;
 import com.masiv.test.exceptions.RouletteException;
 import com.masiv.test.infrastructure.repositories.RouletteRepository;
 import com.masiv.test.services.RouletteService;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -83,31 +85,49 @@ public class DefaultRouletteService implements RouletteService {
   }
 
   @Override
-  public void closeRoulette(final String rouletteId) {
+  public List<BetDTO> closeRoulette(final String rouletteId) {
     short winningBetNumber = generateWinningBetNumber();
     RouletteDTO roulette = findRoulette(rouletteId);
-    roulette.setOpen(false);
-    updateRoulette(roulette);
-    validateWinningBets(roulette, winningBetNumber);
+    if (roulette.isOpen()) {
+      roulette.setOpen(false);
+      updateRoulette(roulette);
+      return validateWinningBets(roulette, winningBetNumber);
+    }
+    throw new RouletteException("La ruleta ya se encuentra cerrada.");
   }
 
-  private void validateWinningBets(final RouletteDTO rouletteDTO, final short winningNumber) {
+  private List<BetDTO> validateWinningBets(RouletteDTO rouletteDTO, final short winningNumber) {
+    List<BetDTO> betDTOS = new ArrayList<>();
     rouletteDTO.getBets().stream()
         .filter(Objects::nonNull)
         .filter(
             betDTO ->
                 validateWinningNumberMatch(winningNumber, betDTO)
                     || validateColorMatchWinningNumber(betDTO, winningNumber))
-        .forEach(betDTO -> System.out.println(betDTO.toString() + " - " + winningNumber));
+        .forEach(
+            betDTO -> {
+              betDTO.setWinningBetNumber(winningNumber);
+              betDTOS.add(betDTO);
+            });
+    updateRoulette(rouletteDTO);
+    return betDTOS;
   }
 
   private boolean validateWinningNumberMatch(short winningNumber, BetDTO betDTO) {
-    return betDTO.getBetNumber() == winningNumber;
+    if (betDTO.getBetNumber() == winningNumber) {
+      betDTO.setWinningMoney(betDTO.getMoney().multiply(BigDecimal.valueOf(5L)));
+      return true;
+    }
+    return false;
   }
 
   private boolean validateColorMatchWinningNumber(BetDTO betDTO, short winningNumber) {
-    return (((winningNumber % 2) == 0) && betDTO.getBetColorType().equals(BetColorType.RED)
-        || ((winningNumber % 2) != 0) && betDTO.getBetColorType().equals(BetColorType.BLACK));
+    if (((winningNumber % 2) == 0) && betDTO.getBetColorType().equals(BetColorType.RED)
+        || ((winningNumber % 2) != 0) && betDTO.getBetColorType().equals(BetColorType.BLACK)) {
+      betDTO.setWinningMoney(betDTO.getMoney().multiply(BigDecimal.valueOf(1.8)));
+      return true;
+    }
+    return false;
   }
 
   private RouletteDTO findRoulette(final String rouletteId) {
