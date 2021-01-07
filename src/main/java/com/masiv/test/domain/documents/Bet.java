@@ -7,6 +7,7 @@ import com.masiv.test.domain.enums.betNumber.BetNumberTypeConverter;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import javax.persistence.Convert;
+import javax.persistence.Id;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,7 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Builder
 public class Bet implements Serializable {
-  private String id;
+  @Id private String id;
 
   @Convert(converter = BetColorTypeConverter.class)
   private BetColorType betColorType;
