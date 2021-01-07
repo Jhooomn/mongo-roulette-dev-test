@@ -50,12 +50,33 @@ public class DefaultRouletteService implements RouletteService {
     throw new RouletteException("No se logró realizar la operación, intente más tarde");
   }
 
-  private void updateRoulette(final RouletteDTO roulette) {
+  @Override
+  public RouletteDTO updateRoulette(final RouletteDTO roulette) {
     try {
-      rouletteRepository.save(RouletteAssembler.toDocument(roulette));
+      return RouletteAssembler.toDTO(
+          rouletteRepository.save(RouletteAssembler.toDocument(roulette)));
     } catch (Exception e) {
       throw new RouletteException("Ocurrió un error al momento de actualizar la ruleta");
     }
+  }
+
+  @Override
+  public boolean validateRoulette(String rouletteId) {
+    if (!Objects.isNull(rouletteId) && !rouletteId.isEmpty()) {
+      Optional<Roulette> optionalRoulette = rouletteRepository.findById(rouletteId);
+      if (optionalRoulette.isPresent()) {
+        if (!optionalRoulette.get().isOpen()) {
+          throw new RouletteException(
+              String.format("La ruleta '%s' no se encuentra habilitada en el sistema", rouletteId));
+        } else {
+          return true;
+        }
+      } else {
+        throw new RouletteException(
+            String.format("La ruleta '%s' no se encuentra registrada en el sistema", rouletteId));
+      }
+    }
+    return false;
   }
 
   private RouletteDTO findRoulette(final String rouletteId) {

@@ -33,6 +33,26 @@ public class GeneralExceptionHandler {
         .build();
   }
 
+  @ExceptionHandler({BetException.class})
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  public ErrorResponse tryingExceptionType(BetException exceptionToCatch) {
+    generateLog(exceptionToCatch.getMessage());
+    return ErrorResponse.builder()
+        .exceptionCode(ExceptionCode.BUSINESS)
+        .message(exceptionToCatch.getMessage())
+        .build();
+  }
+
+  @ExceptionHandler({RouletteException.class})
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  public ErrorResponse tryingExceptionType(RouletteException exceptionToCatch) {
+    generateLog(exceptionToCatch.getMessage());
+    return ErrorResponse.builder()
+        .exceptionCode(ExceptionCode.BUSINESS)
+        .message(exceptionToCatch.getMessage())
+        .build();
+  }
+
   private void generateLog(final String message) {
     log.error(message);
   }
