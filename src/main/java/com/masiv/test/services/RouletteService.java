@@ -15,4 +15,6 @@ public interface RouletteService {
   boolean validateRoulette(String rouletteId);
 
   List<BetDTO> closeRoulette(String rouletteId);
+
+  List<RouletteDTO> listRoulettes();
 }
