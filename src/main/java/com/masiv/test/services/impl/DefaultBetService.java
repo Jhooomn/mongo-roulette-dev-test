@@ -6,10 +6,12 @@ import com.masiv.test.exceptions.BetException;
 import com.masiv.test.services.BetService;
 import com.masiv.test.services.RouletteService;
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,12 +20,14 @@ public class DefaultBetService implements BetService {
 
   public static final String EMPTY_STRING = "";
   private final RouletteService rouletteService;
+  private final MessageSource messageSource;
 
   @Value("${politics.max-money}")
   private BigDecimal MAX_MONEY;
 
-  public DefaultBetService(RouletteService rouletteService) {
+  public DefaultBetService(RouletteService rouletteService, MessageSource messageSource) {
     this.rouletteService = rouletteService;
+    this.messageSource = messageSource;
   }
 
   @Override
@@ -37,7 +41,8 @@ public class DefaultBetService implements BetService {
         return rouletteService.updateRoulette(rouletteDTO);
       }
     }
-    throw new BetException("No se pudo registrar la apuesta.");
+    throw new BetException(
+        messageSource.getMessage("bet.could.not.be.saved", null, Locale.getDefault()));
   }
 
   @Override
@@ -45,16 +50,19 @@ public class DefaultBetService implements BetService {
     if (!Objects.isNull(betDTO)) {
       if (Objects.isNull(betDTO.getId())) betDTO.setId(UUID.randomUUID().toString());
       if (!validateBetNumber(betDTO)) {
-        throw new BetException("Los números válidos para apostar son del 0 al 36");
+        throw new BetException(
+            messageSource.getMessage("valid.roulete.numbers", null, Locale.getDefault()));
       }
       if (!validateBetMoney(betDTO)) {
         throw new BetException(
             String.format(
-                "La cantidad maxima que puede suministrar es de %s dolares", MAX_MONEY.toString()));
+                messageSource.getMessage("valid.max.money", null, Locale.getDefault()),
+                MAX_MONEY.toString()));
       }
       return true;
     }
-    throw new BetException("No es posible registrar las apuestas.");
+    throw new BetException(
+        messageSource.getMessage("bet.could.not.be.saved", null, Locale.getDefault()));
   }
 
   private boolean validateBetMoney(BetDTO betDTO) {

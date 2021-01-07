@@ -12,12 +12,14 @@ import com.masiv.test.services.RouletteService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultRouletteService implements RouletteService {
 
   private final RouletteRepository rouletteRepository;
+  private final MessageSource messageSource;
 
-  public DefaultRouletteService(RouletteRepository rouletteRepository) {
+  public DefaultRouletteService(
+      RouletteRepository rouletteRepository, MessageSource messageSource) {
     this.rouletteRepository = rouletteRepository;
+    this.messageSource = messageSource;
   }
 
   @Override
@@ -41,7 +46,7 @@ public class DefaultRouletteService implements RouletteService {
       return roulette.getId();
     } catch (Exception e) {
       throw new RouletteException(
-          "Hubo un error al momento de crear la ruleta, por favor... intente más tarde");
+          messageSource.getMessage("internal.server.error", null, Locale.getDefault()));
     }
   }
 
@@ -51,9 +56,10 @@ public class DefaultRouletteService implements RouletteService {
     if (!Objects.isNull(roulette.getId()) && !roulette.getId().isEmpty()) {
       roulette.setOpen(true);
       updateRoulette(roulette);
-      return "La operación fue exitosa";
+      return messageSource.getMessage("valid.succesfully.operation", null, Locale.getDefault());
     }
-    throw new RouletteException("No se logró realizar la operación, intente más tarde");
+    throw new RouletteException(
+        messageSource.getMessage("valid.error.operation", null, Locale.getDefault()));
   }
 
   @Override
@@ -62,7 +68,9 @@ public class DefaultRouletteService implements RouletteService {
       return RouletteAssembler.toDTO(
           rouletteRepository.save(RouletteAssembler.toDocument(roulette)));
     } catch (Exception e) {
-      throw new RouletteException("Ocurrió un error al momento de actualizar la ruleta");
+      throw new RouletteException(
+          messageSource.getMessage(
+              "valid.unexpected.error.while.updating.roulette", null, Locale.getDefault()));
     }
   }
 
@@ -73,13 +81,14 @@ public class DefaultRouletteService implements RouletteService {
       if (optionalRoulette.isPresent()) {
         if (!optionalRoulette.get().isOpen()) {
           throw new RouletteException(
-              String.format("La ruleta '%s' no se encuentra habilitada en el sistema", rouletteId));
+              messageSource.getMessage("valid.roulette.does.not.open", null, Locale.getDefault()));
         } else {
           return true;
         }
       } else {
         throw new RouletteException(
-            String.format("La ruleta '%s' no se encuentra registrada en el sistema", rouletteId));
+            messageSource.getMessage(
+                "valid.roulette.does.not.persisted", null, Locale.getDefault()));
       }
     }
     return false;
@@ -94,7 +103,8 @@ public class DefaultRouletteService implements RouletteService {
       updateRoulette(roulette);
       return validateWinningBets(roulette, winningBetNumber);
     }
-    throw new RouletteException("La ruleta ya se encuentra cerrada.");
+    throw new RouletteException(
+        messageSource.getMessage("valid.roulette.is.already.closed", null, Locale.getDefault()));
   }
 
   @Override
@@ -143,7 +153,7 @@ public class DefaultRouletteService implements RouletteService {
     Optional<Roulette> optionalRoulette = rouletteRepository.findById(rouletteId);
     if (optionalRoulette.isPresent()) return RouletteAssembler.toDTO(optionalRoulette.get());
     throw new RouletteException(
-        "La ruleta que intenta buscar no se encuentra registrada en el sistema");
+        messageSource.getMessage("valid.roulette.does.not.persisted", null, Locale.getDefault()));
   }
 
   private short generateWinningBetNumber() {
