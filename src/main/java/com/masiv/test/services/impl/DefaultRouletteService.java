@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,6 +95,14 @@ public class DefaultRouletteService implements RouletteService {
       return validateWinningBets(roulette, winningBetNumber);
     }
     throw new RouletteException("La ruleta ya se encuentra cerrada.");
+  }
+
+  @Override
+  public List<RouletteDTO> listRoulettes() {
+    return rouletteRepository.findAll().stream()
+        .filter(Objects::nonNull)
+        .map(RouletteAssembler::toDTO)
+        .collect(Collectors.toList());
   }
 
   private List<BetDTO> validateWinningBets(RouletteDTO rouletteDTO, final short winningNumber) {
