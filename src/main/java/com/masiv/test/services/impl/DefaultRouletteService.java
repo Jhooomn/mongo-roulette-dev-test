@@ -2,8 +2,10 @@ package com.masiv.test.services.impl;
 
 import com.masiv.test.application.RouletteAssembler;
 import com.masiv.test.domain.documents.Roulette;
+import com.masiv.test.domain.dto.BetDTO;
 import com.masiv.test.domain.dto.ChangeRouletteStatusDTO;
 import com.masiv.test.domain.dto.RouletteDTO;
+import com.masiv.test.domain.enums.betColor.BetColorType;
 import com.masiv.test.exceptions.RouletteException;
 import com.masiv.test.infrastructure.repositories.RouletteRepository;
 import com.masiv.test.services.RouletteService;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,10 +82,42 @@ public class DefaultRouletteService implements RouletteService {
     return false;
   }
 
+  @Override
+  public void closeRoulette(final String rouletteId) {
+    short winningBetNumber = generateWinningBetNumber();
+    RouletteDTO roulette = findRoulette(rouletteId);
+    roulette.setOpen(false);
+    updateRoulette(roulette);
+    validateWinningBets(roulette, winningBetNumber);
+  }
+
+  private void validateWinningBets(final RouletteDTO rouletteDTO, final short winningNumber) {
+    rouletteDTO.getBets().stream()
+        .filter(Objects::nonNull)
+        .filter(
+            betDTO ->
+                validateWinningNumberMatch(winningNumber, betDTO)
+                    || validateColorMatchWinningNumber(betDTO, winningNumber))
+        .forEach(betDTO -> System.out.println(betDTO.toString() + " - " + winningNumber));
+  }
+
+  private boolean validateWinningNumberMatch(short winningNumber, BetDTO betDTO) {
+    return betDTO.getBetNumber() == winningNumber;
+  }
+
+  private boolean validateColorMatchWinningNumber(BetDTO betDTO, short winningNumber) {
+    return (((winningNumber % 2) == 0) && betDTO.getBetColorType().equals(BetColorType.RED)
+        || ((winningNumber % 2) != 0) && betDTO.getBetColorType().equals(BetColorType.BLACK));
+  }
+
   private RouletteDTO findRoulette(final String rouletteId) {
     Optional<Roulette> optionalRoulette = rouletteRepository.findById(rouletteId);
     if (optionalRoulette.isPresent()) return RouletteAssembler.toDTO(optionalRoulette.get());
     throw new RouletteException(
         "La ruleta que intenta buscar no se encuentra registrada en el sistema");
+  }
+
+  private short generateWinningBetNumber() {
+    return (short) ThreadLocalRandom.current().nextInt(0, 36 + 1);
   }
 }

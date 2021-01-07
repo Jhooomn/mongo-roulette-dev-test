@@ -11,4 +11,6 @@ public interface RouletteService {
   RouletteDTO updateRoulette(RouletteDTO rouletteDTO);
 
   boolean validateRoulette(String rouletteId);
+
+  void closeRoulette(String rouletteId);
 }

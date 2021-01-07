@@ -32,4 +32,11 @@ public class RouletteController {
     return new ResponseEntity<>(
         rouletteService.openingRoulette(changeRouletteStatusDTO), HttpStatus.OK);
   }
+
+  @PutMapping(value = "/close-status")
+  public ResponseEntity<String> closeRouletteStatus(
+      @RequestBody ChangeRouletteStatusDTO changeRouletteStatusDTO) {
+    rouletteService.closeRoulette(changeRouletteStatusDTO.getId());
+    return new ResponseEntity<>(null, HttpStatus.OK);
+  }
 }
